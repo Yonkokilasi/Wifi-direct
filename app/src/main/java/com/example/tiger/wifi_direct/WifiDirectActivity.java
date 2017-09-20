@@ -13,8 +13,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
+
+import static android.R.attr.id;
 
 public class WifiDirectActivity extends AppCompatActivity implements WifiP2pManager.ChannelListener{
     public static final String TAG = "wifidirectdemo";
@@ -25,13 +28,21 @@ public class WifiDirectActivity extends AppCompatActivity implements WifiP2pMana
     private final IntentFilter intentFilter = new IntentFilter();
     private WifiP2pManager.Channel channel;
     private BroadcastReceiver receiver = null;
-    public void setWifiP2pEnabled(boolean isWifiP2pEnabled){
+
+    /**
+     * @param isWifiP2pEnabled the isWifiP2pEnabled to set
+     */
+    public void setIsWifiP2pEnabled(boolean isWifiP2pEnabled) {
         this.isWifiP2pEnabled = isWifiP2pEnabled;
     }
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_wifi_direct);
+        setContentView(R.layout.main);
+
+        // add necessary intent values to be matched.
+
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
@@ -40,35 +51,48 @@ public class WifiDirectActivity extends AppCompatActivity implements WifiP2pMana
         manager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         channel = manager.initialize(this, getMainLooper(), null);
     }
+
+    /** register the BroadcastReceiver with the intent values to be matched */
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
-        receiver = new WifiDirectBroadcastReceiver(manager,channel,this);
-        registerReceiver(receiver,intentFilter);
+        receiver = new WifiDirectBroadcastReceiver(manager, channel, this);
+        registerReceiver(receiver, intentFilter);
     }
+
     @Override
-    public void onPause(){
+    public void onPause() {
         super.onPause();
         unregisterReceiver(receiver);
     }
+
+    /**
+     * Remove all peers and clear all fields. This is called on
+     * BroadcastReceiver receiving a state change event.
+     */
     public void resetData() {
         DeviceListFragment fragmentList = (DeviceListFragment) getFragmentManager()
                 .findFragmentById(R.id.frag_list);
-        DeviceDetailFragment fragmentDetails = (DeviceDetailFragment) getFragmentManager()
-                .findFragmentById(R.id.frag_detail);
+        DeviceDetailFragment fragmentDetails = (DeviceDetailFragment) getFragmentManager().findFragmentById(R.id.frag_detail);
         if (fragmentList != null) {
             fragmentList.clearPeers();
         }
-        if (fragmentDetails !=null) {
+        if (fragmentDetails != null) {
             fragmentDetails.resetViews();
         }
     }
+
     @Override
-    public boolean OncreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.action_items,menu);
+        inflater.inflate(R.menu.action_items, menu);
         return true;
     }
+
+    /*
+     * (non-Javadoc)
+     * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -92,7 +116,7 @@ public class WifiDirectActivity extends AppCompatActivity implements WifiP2pMana
                     return true;
                 }
                 final DeviceListFragment fragment = (DeviceListFragment) getFragmentManager()
-                        .findFragmentById(R.id.frag_list);
+                        .findFragmentById(id.frag_list);
                 fragment.onInitiateDiscovery();
                 manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
 
@@ -184,7 +208,7 @@ public class WifiDirectActivity extends AppCompatActivity implements WifiP2pMana
          */
         if (manager != null) {
             final DeviceListFragment fragment = (DeviceListFragment) getFragmentManager()
-                    .findFragmentById(R.id.frag_list);
+                    .findFragmentById(id.frag_list);
             if (fragment.getDevice() == null
                     || fragment.getDevice().status == WifiP2pDevice.CONNECTED) {
                 disconnect();
