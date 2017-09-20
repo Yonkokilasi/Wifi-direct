@@ -49,19 +49,24 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
 
             if (manager == null) {
                 return;
+            }
+
+            NetworkInfo networkInfo = (NetworkInfo) intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
+
+            if (networkInfo.isConnected()) {
+                // we are connected with the other device, request connection
+                // info to find group owner IP
+
+                DeviceDetailFragment fragment = (DeviceDetailFragment) activity
+                        .getFragmentManager().findFragmentById(R.id.frag_detail);
+                manager.requestConnectionInfo(channel, fragment);
+
+            } else {
+                activity.resetData();
+            }
         }
 
-    }
-        NetworkInfo networkInfo = (NetworkInfo) intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
-        if (networkInfo.isConnected()) {
-            // we are connected with the other device, request connection
-            // info to find group owner IP
-
-            DeviceDetailFragment fragment = (DeviceDetailFragment) activity
-                    .getFragmentManager().findFragmentById(R.id.frag_detail);
-            manager.requestConnectionInfo(channel, fragment);
-
-        } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
+        else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
         DeviceListFragment fragment = (DeviceListFragment) activity.getFragmentManager()
                 .findFragmentById(R.id.frag_list);
         fragment.updateThisDevice((WifiP2pDevice) intent.getParcelableExtra(
@@ -69,5 +74,5 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
 
     }
 
-}
+    }
 }
